@@ -17,7 +17,7 @@ from container import Container
 
 
 # 超参数和配置
-use_video =  True
+use_video = False
 camera_index = 0  # 相机索引
 yaml_file = "yolov8s.yaml"
 pt_file = "huazhongv8.pt"
@@ -207,6 +207,7 @@ def tracker():
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
             label_text = f"{container.label} Id {container.id} {container.score:.2f} {container.distance:.2f} M"
             cv2.putText(frame, label_text, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            container.print_simple_info()
 
         end_time = time.time()  # 结束计时
         processing_time = end_time - start_time  # 计算处理时间

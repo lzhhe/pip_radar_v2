@@ -1,13 +1,11 @@
 import cv2
 import numpy as np
 
-camera_matrix = np.array([
-    [1.28935817e+03, 0.00000000e+00, 6.52933651e+02],
-    [0.00000000e+00, 1.28544079e+03, 4.88324670e+02],
-    [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]
-])
+camera_matrix = np.array([[2.15768421e+03, 0.00000000e+00, 1.11801169e+02],
+                          [0.00000000e+00, 2.15942905e+03, 2.47361876e+02],
+                          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
 
-dist_coeffs = np.array([[-0.09254919, 0.0935931, -0.00351003, -0.00365731, 0.33110822]])
+dist_coeffs = np.array([[-3.99667243e-01, 9.24536500e+00, 2.26975676e-02, -2.89065215e-02, -3.42883144e+01]])
 
 # 单位:m
 # 此处只是简单的计算，长度不畸变，但是取了对角线，因为实际的检测框是要比实际大的，这样可以减一下误差# 高度也没有进行换算，但是应该有个一个3m的换算到时候再说
@@ -42,7 +40,7 @@ armor_sizes = {
         [0.42, 0.25, 0],  # 右下角
         [-0.42, 0.25, 0]  # 左下角
     ]),
-    "armor7": np.array([  # 哨兵
+    "armor6": np.array([  # 哨兵
         [-0.5, -0.25, 0],  # 左上角
         [0.5, -0.25, 0],  # 右上角
         [0.5, 0.25, 0],  # 右下角
@@ -57,7 +55,7 @@ armor_weightC = {
     "armor3": 0.4,
     "armor4": 0.4,
     "armor5": 0.4,
-    "armor7": 0.4,
+    "armor6": 0.4,
 }
 
 armor_weightI = {
@@ -66,7 +64,7 @@ armor_weightI = {
     "armor3": 0.6,
     "armor4": 0.6,
     "armor5": 0.6,
-    "armor7": 0.6,
+    "armor6": 0.6,
 }
 
 armor_flag_limit = {
@@ -75,7 +73,7 @@ armor_flag_limit = {
     "armor3": 30,
     "armor4": 30,
     "armor5": 30,
-    "armor7": 30,
+    "armor6": 30,
 }
 
 
@@ -186,6 +184,10 @@ class Container:
                 armorBox = armor[0]
                 armorLabel = armor[1]
                 armorConf = armor[2]
+                # 计算两个检测框中心点之间的距离
+                center_distance = calculate_center_distance(self.box, armorBox)
+                if center_distance > np.sqrt(2) * max(self.box[2], self.box[3]):
+                    continue
 
                 IOU = calculate_iou(self.box, armorBox)
                 if IOU < 0.3:
@@ -197,7 +199,7 @@ class Container:
                         tempLabel = armorLabel
                         tempScore = result_score
 
-            # 华南的方案这里增加了等级机制，但是我觉得不一定时间越长就不用重置分类，所以不加了
+            # 华南的方案这里增加了等级机制，但是个人觉得不一定时间越长就不用重置分类，所以不加了
 
             self.flag = 1
             self.score = tempScore
@@ -230,4 +232,11 @@ class Container:
         print(f"Size: {self.size}")
         print(f"Flag: {self.flag}")
         print(f"Flag Limit: {self.flagLimit}")
+        print(f"Distance: {self.distance:.2f} M" + "\n")
+
+    def print_simple_info(self):
+        print(f"ID: {self.id}")
+        print(f"Box: {self.box}")
+        print(f"Label: {self.label}")
+        print(f"Flag: {self.flag}")
         print(f"Distance: {self.distance:.2f} units" + "\n")

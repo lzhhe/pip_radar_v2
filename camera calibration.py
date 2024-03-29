@@ -15,7 +15,7 @@ objpoints = []  # 3D点
 imgpoints = []  # 2D点
 
 # 读取图片
-images = glob.glob('C:/Users/131A2AB/Documents/MVDCPImages/*.jpg')
+images = glob.glob('C:/Users/13071/MVS/Data/*.bmp')
 
 for fname in images:
     img = cv2.imread(fname)
