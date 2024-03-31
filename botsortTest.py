@@ -16,7 +16,7 @@ from init_camera import buffer
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # 超参数和配置
-use_video = False
+use_video = True
 camera_index = 0  # 相机索引
 yaml_file = "yolov8s.yaml"
 pt_file = "huazhongv8.pt"

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from transformLocation import *
 
 camera_matrix = np.array([[2.15768421e+03, 0.00000000e+00, 1.11801169e+02],
                           [0.00000000e+00, 2.15942905e+03, 2.47361876e+02],
@@ -147,10 +148,10 @@ class Container:
         self.flagLimit = 30  # 默认30 避免锁死
 
         self.label = ""  # 最终标签
-        self.score = ""  # 最终评分
+        self.score = 0  # 最终评分
         self.weightI = 0.5  # 初次需要有个权重
         self.weightC = 0.5
-        self.size = np.array([  # 步兵
+        self.size = np.array([
             [0, 0, 0],  # 左上角
             [0, 0, 0],  # 右上角
             [0, 0, 0],  # 右下角
@@ -169,6 +170,7 @@ class Container:
     def updateConfig(self):
         # print("更新配置")
         label_name = self.label[:6]
+        # print("label_name: ", label_name)
         self.weightC = armor_weightC.get(label_name)
         self.weightI = armor_weightI.get(label_name)
         self.size = armor_sizes.get(label_name)
@@ -187,10 +189,11 @@ class Container:
                 # 计算两个检测框中心点之间的距离
                 center_distance = calculate_center_distance(self.box, armorBox)
                 if center_distance > np.sqrt(2) * max(self.box[2], self.box[3]):
+                    # print("distance is far from the container box")
                     continue
 
                 IOU = calculate_iou(self.box, armorBox)
-                if IOU < 0.3:
+                if IOU < 0.5:
                     continue
                 else:
                     result_score = calculate_score(IOU, armorConf, self.weightC, self.weightI)
@@ -200,7 +203,12 @@ class Container:
                         tempScore = result_score
 
             # 华南的方案这里增加了等级机制，但是个人觉得不一定时间越长就不用重置分类，所以不加了
-
+            if tempLabel == "":  # 避免更新帧没有更新成功
+                print("can not update, no match armor")
+                self.flag = self.flag + 1
+                self.updateDistance()
+                # 保持原有
+                return
             self.flag = 1
             self.score = tempScore
             self.label = tempLabel
@@ -209,18 +217,22 @@ class Container:
 
         else:
             self.flag = self.flag + 1
-            # self.updateDistance()
+            self.updateDistance()
             # print("没有到限制不重置")
             return
 
     def updateDistance(self):
-        image_points = np.array([
-            [self.box[0], self.box[1]],  # 左上角
-            [self.box[2], self.box[1]],  # 右上角
-            [self.box[2], self.box[3]],  # 右下角
-            [self.box[0], self.box[3]]  # 左下角
-        ], dtype=np.float32)  # 确保为浮点数类型
-        self.distance = calculateDistance(self.size, image_points, camera_matrix, dist_coeffs)
+        if self.label and self.label[:6] in armor_sizes:
+
+            image_points = np.array([
+                [self.box[0], self.box[1]],  # 左上角
+                [self.box[2], self.box[1]],  # 右上角
+                [self.box[2], self.box[3]],  # 右下角
+                [self.box[0], self.box[3]]  # 左下角
+            ], dtype=np.float32)  # 确保为浮点数类型
+            self.distance = calculateDistance(self.size, image_points, camera_matrix, dist_coeffs)
+        else:
+            print("Invalid label or label not found in armor_sizes. Distance not updated.")
 
     def print_info(self):
         print(f"ID: {self.id}")
@@ -240,3 +252,6 @@ class Container:
         print(f"Label: {self.label}")
         print(f"Flag: {self.flag}")
         print(f"Distance: {self.distance:.2f} units" + "\n")
+
+    def showLocation(self):
+        return getTargetImageCoordinates(self.box, self.distance)

@@ -15,9 +15,10 @@ from fps_counter import FPSCounter
 # from init_camera import buffer
 from container import Container
 
-
 # 超参数和配置
-use_video = False
+use_video = True
+showLocation = True
+battlefield_img = cv2.imread("E:/Desktop/pip_radar_v2/battlefield.png")
 camera_index = 0  # 相机索引
 yaml_file = "yolov8s.yaml"
 pt_file = "huazhongv8.pt"
@@ -175,7 +176,13 @@ def tracker():
                 # 按标签名称分配到不同的字典
                 if label_name == 'car':
                     carDict[id] = [box, label_name, conf]
-                elif 'armor' in label_name and enemy in label_name:
+
+                # 这里不使用敌人标签进行过滤是因为container在两个车相交时会将标签给两个车，无法区别了，这部分需要优化
+                # 现阶段的办法就是都识别，算力似乎足够而且没吃满
+                # 如果使用严格的交并比和分数进行过滤，也无法完全保证准确识别
+                # 敌我区分则在最后发送时进行过滤
+                # elif 'armor' in label_name and enemy in label_name:
+                elif 'armor' in label_name:
                     armorDict[id] = [box, label_name, conf]
             # print("carDict: ", carDict)
             # print("armorDict: ", armorDict)
@@ -202,17 +209,29 @@ def tracker():
 
         containerDict.clear()
         containerDict.update(tempContainerDict)
+
+        current_battlefield_img = battlefield_img.copy()  # 复制一张原图准备刷新
+
         for container in containerDict.values():
             box = container.box
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
             label_text = f"{container.label} Id {container.id} {container.score:.2f} {container.distance:.2f} M"
             cv2.putText(frame, label_text, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            container.print_simple_info()
+            container.print_info()
+
+            if showLocation == True:
+                x_pixel, y_pixel = container.showLocation()  # 图片显示
+                cv2.circle(current_battlefield_img, (int(x_pixel), int(y_pixel)), radius=10, color=(0, 0, 255),
+                           thickness=-1)
+                cv2.putText(current_battlefield_img, f"ID: {container.id}", (int(x_pixel), int(y_pixel) - 15),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+        if showLocation == True:
+            cv2.imshow("Battlefield with Coordinates", current_battlefield_img)
 
         end_time = time.time()  # 结束计时
         processing_time = end_time - start_time  # 计算处理时间
         print("处理一帧所需时间: {:.2f} 秒".format(processing_time))  # 打印处理时间
-
 
         return frame
 
