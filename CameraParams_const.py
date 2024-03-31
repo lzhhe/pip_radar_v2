@@ -8,7 +8,7 @@ MV_1394_DEVICE                               = 0x00000002  # < \~chinese 1394-a/
 MV_USB_DEVICE                                = 0x00000004  # < \~chinese USB 设备                     \~english USB Device
 MV_CAMERALINK_DEVICE                         = 0x00000008  # < \~chinese CameraLink设备               \~english CameraLink Device
 
-INFO_MAX_BUFFER_SIZE                         = 64          # < \~chinese 最大的数据信息大小           \~english Maximum data information size
+INFO_MAX_BUFFER_SIZE                         = 64          # < \~chinese 最大的数据信息大小           \~english Maximum packet information size
 
 MV_MAX_TLS_NUM                               = 8           # < \~chinese 最多支持的传输层实例个数     \~english The maximum number of supported transport layer instances
 MV_MAX_DEVICE_NUM                            = 256         # < \~chinese 最大支持的设备个数           \~english The maximum number of supported devices

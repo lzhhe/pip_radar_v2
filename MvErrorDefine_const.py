@@ -10,7 +10,7 @@ MV_E_BUFOVER                                 = 0x80000002  # < \~chinese 缓存�
 MV_E_CALLORDER                               = 0x80000003  # < \~chinese 函数调用顺序错误         \~english Function calling order error
 MV_E_PARAMETER                               = 0x80000004  # < \~chinese 错误的参数               \~english Incorrect parameter
 MV_E_RESOURCE                                = 0x80000006  # < \~chinese 资源申请失败             \~english Applying resource failed
-MV_E_NODATA                                  = 0x80000007  # < \~chinese 无数据                   \~english No data
+MV_E_NODATA                                  = 0x80000007  # < \~chinese 无数据                   \~english No packet
 MV_E_PRECONDITION                            = 0x80000008  # < \~chinese 前置条件有误，或运行环境已发生变化       \~english Precondition error, or running environment changed
 MV_E_VERSION                                 = 0x80000009  # < \~chinese 版本不匹配               \~english Version mismatches
 MV_E_NOENOUGH_BUF                            = 0x8000000A  # < \~chinese 传入的内存空间不足       \~english Insufficient memory
@@ -37,7 +37,7 @@ MV_E_INVALID_ADDRESS                         = 0x80000201  # < \~chinese 访问�
 MV_E_WRITE_PROTECT                           = 0x80000202  # < \~chinese 目标地址不可写           \~english The target address is not writable
 MV_E_ACCESS_DENIED                           = 0x80000203  # < \~chinese 设备无访问权限           \~english No permission
 MV_E_BUSY                                    = 0x80000204  # < \~chinese 设备忙，或网络断开       \~english Device is busy, or network disconnected
-MV_E_PACKET                                  = 0x80000205  # < \~chinese 网络包数据错误           \~english Network data packet error
+MV_E_PACKET                                  = 0x80000205  # < \~chinese 网络包数据错误           \~english Network packet packet error
 MV_E_NETER                                   = 0x80000206  # < \~chinese 网络相关错误             \~english Network error
 MV_E_IP_CONFLICT                             = 0x80000221  # < \~chinese 设备IP冲突               \~english Device IP conflict
 

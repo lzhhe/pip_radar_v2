@@ -162,14 +162,14 @@ class MvCamera():
         MvCamCtrldll.MV_CC_StopGrabbing.restype = c_uint
         return MvCamCtrldll.MV_CC_StopGrabbing(self.handle)
 		
-	# ch:获取一帧RGB数据，此函数为查询式获取，每次调用查询内部缓存有无数据，有数据则获取数据，无数据返回错误码 | en:Get one frame of RGB data, this function is using query to get data query whether the internal cache has data, get data if there has, return error code if no data
+	# ch:获取一帧RGB数据，此函数为查询式获取，每次调用查询内部缓存有无数据，有数据则获取数据，无数据返回错误码 | en:Get one frame of RGB packet, this function is using query to get packet query whether the internal cache has packet, get packet if there has, return error code if no packet
     def MV_CC_GetImageForRGB(self, pData, nDataSize, stFrameInfo, nMsec):
         MvCamCtrldll.MV_CC_GetImageForRGB.argtype = (c_void_p, c_void_p, c_uint, c_void_p, c_uint)
         MvCamCtrldll.MV_CC_GetImageForRGB.restype = c_uint
         # C原型:int MV_CC_GetImageForRGB(IN void* handle, IN OUT unsigned char * pData , IN unsigned int nDataSize, IN OUT MV_FRAME_OUT_INFO_EX* pstFrameInfo, int nMsec);
         return MvCamCtrldll.MV_CC_GetImageForRGB(self.handle, pData, nDataSize, byref(stFrameInfo), nMsec)
     
-    # ch:获取一帧BGR数据，此函数为查询式获取，每次调用查询内部缓存有无数据，有数据则获取数据，无数据返回错误码 | en:Get one frame of BGR data, this function is using query to get data query whether the internal cache has data, get data if there has, return error code if no data
+    # ch:获取一帧BGR数据，此函数为查询式获取，每次调用查询内部缓存有无数据，有数据则获取数据，无数据返回错误码 | en:Get one frame of BGR packet, this function is using query to get packet query whether the internal cache has packet, get packet if there has, return error code if no packet
     def MV_CC_GetImageForBGR(self, pData, nDataSize, stFrameInfo, nMsec):
         MvCamCtrldll.MV_CC_GetImageForBGR.argtype = (c_void_p, c_void_p, c_uint, c_void_p, c_uint)
         MvCamCtrldll.MV_CC_GetImageForBGR.restype = c_uint
@@ -190,14 +190,14 @@ class MvCamera():
         # C原型:int MV_CC_FreeImageBuffer(IN void* handle, IN MV_FRAME_OUT* pstFrame);
         return MvCamCtrldll.MV_CC_FreeImageBuffer(self.handle, byref(stFrame))
 		
-	# ch:采用超时机制获取一帧图片，SDK内部等待直到有数据时返回 | en:Timeout mechanism is used to get image, and the SDK waits inside until the data is returned
+	# ch:采用超时机制获取一帧图片，SDK内部等待直到有数据时返回 | en:Timeout mechanism is used to get image, and the SDK waits inside until the packet is returned
     def MV_CC_GetOneFrameTimeout(self, pData, nDataSize, stFrameInfo, nMsec=1000):
         MvCamCtrldll.MV_CC_GetOneFrameTimeout.argtype = (c_void_p, c_void_p, c_uint, c_void_p, c_uint)
         MvCamCtrldll.MV_CC_GetOneFrameTimeout.restype = c_uint
         # C原型:int MV_CC_GetOneFrameTimeout(void* handle, unsigned char * pData , unsigned int nDataSize, MV_FRAME_OUT_INFO_EX* pFrameInfo, unsigned int nMsec)
         return MvCamCtrldll.MV_CC_GetOneFrameTimeout(self.handle, pData, nDataSize, byref(stFrameInfo), nMsec)
     
-    # ch:清除取流数据缓存 | en:if Image buffers has retrieved the data，Clear them
+    # ch:清除取流数据缓存 | en:if Image buffers has retrieved the packet，Clear them
     def MV_CC_ClearImageBuffer(self):
         MvCamCtrldll.MV_CC_ClearImageBuffer.argtype = (c_void_p)
         MvCamCtrldll.MV_CC_ClearImageBuffer.restype = c_uint
@@ -745,7 +745,7 @@ class MvCamera():
         # C原型:int MV_CC_SaveImageToFileEx(IN void* handle,  MV_SAVE_IMAGE_TO_FILE_PARAM_EX* pstSaveFileParam);
         return MvCamCtrldll.MV_CC_SaveImageToFileEx(self.handle, byref(stSaveFileParam))
 
-    # ch:保存3D点云数据，支持PLY、CSV和OBJ三种格式 | en:Save 3D point data, support PLY、CSV and OBJ
+    # ch:保存3D点云数据，支持PLY、CSV和OBJ三种格式 | en:Save 3D point packet, support PLY、CSV and OBJ
     def MV_CC_SavePointCloudData(self, stPointDataParam):
         MvCamCtrldll.MV_CC_SavePointCloudData.argtype = (c_void_p, c_void_p)
         MvCamCtrldll.MV_CC_SavePointCloudData.restype = c_uint
@@ -921,7 +921,7 @@ class MvCamera():
         # C原型:int __stdcall MV_CC_StartRecord(IN void* handle, IN MV_CC_RECORD_PARAM* pstRecordParam);
         return MvCamCtrldll.MV_CC_StartRecord(self.handle, byref(stRecordParam))
 
-    # ch: 输入录像数据 | en:Input RAW data to Record
+    # ch: 输入录像数据 | en:Input RAW packet to Record
     def MV_CC_InputOneFrame(self, stInputFrameInfo):
         MvCamCtrldll.MV_CC_InputOneFrame.argtype = (c_void_p, c_void_p)
         MvCamCtrldll.MV_CC_InputOneFrame.restype = c_uint

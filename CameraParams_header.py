@@ -57,9 +57,9 @@ IFT_IEnumeration = 9                             # < \~chinese IEnumeration接�
 IFT_ICommand = 4                                 # < \~chinese ICommand接口类型                \~english ICommand interface
 IFT_IBoolean = 3                                 # < \~chinese IBoolean接口类型                \~english IBoolean interface
 IFT_IInteger = 2                                 # < \~chinese IInteger接口类型                \~english IInteger interface
-MV_GIGE_TRANSTYPE_MULTICAST_WITHOUT_RECV = 65537 # < \~chinese 表示组播模式，但本实例不接收图像数据         \~english Multicast without receive data
+MV_GIGE_TRANSTYPE_MULTICAST_WITHOUT_RECV = 65537 # < \~chinese 表示组播模式，但本实例不接收图像数据         \~english Multicast without receive packet
 IFT_IBase = 1                                    # < \~chinese IBase接口类型                             \~english IBase interface
-MV_GIGE_TRANSTYPE_UNICAST_WITHOUT_RECV = 65536   # < \~chinese 表示设置了单播，但本实例不接收图像数据       \~english Unicast without receive data
+MV_GIGE_TRANSTYPE_UNICAST_WITHOUT_RECV = 65536   # < \~chinese 表示设置了单播，但本实例不接收图像数据       \~english Unicast without receive packet
 MV_BALANCEWHITE_AUTO_ONCE = 2                    # < \~chinese 单次自动白平衡                             \~english Balance white auto once
 MV_GIGE_TRANSTYPE_LIMITEDBROADCAST = 2           # < \~chinese 表示局域网内广播，暂不支持                  \~english Limited broadcast mode,not support
 MV_GIGE_TRANSTYPE_MULTICAST = 1                  # < \~chinese 表示组播                                  \~english Multicast mode
@@ -268,7 +268,7 @@ MV_GENTL_DEV_INFO_LIST = _MV_GENTL_DEV_INFO_LIST_
 class _MV_CHUNK_DATA_CONTENT_(Structure):
     pass
 _MV_CHUNK_DATA_CONTENT_._fields_ = [
-    ('pChunkData', POINTER(c_ubyte)),  # < \~chinese 块数据             \~english Chunk data
+    ('pChunkData', POINTER(c_ubyte)),  # < \~chinese 块数据             \~english Chunk packet
     ('nChunkID', c_uint),              # < \~chinese 块数据ID           \~english Chunk id
     ('nChunkLen', c_uint),             # < \~chinese 块数据长度         \~english Chunk len
     ('nReserved', c_uint * 8),         # < \~chinese 保留字节           \~english Reserved bytes
@@ -383,7 +383,7 @@ MV_ALL_MATCH_INFO = _MV_ALL_MATCH_INFO_
 class _MV_MATCH_INFO_NET_DETECT_(Structure):
     pass
 _MV_MATCH_INFO_NET_DETECT_._fields_ = [
-    ('nReceiveDataSize', int64_t),          # < \~chinese 已接收数据大小      \~english Received data size
+    ('nReceiveDataSize', int64_t),          # < \~chinese 已接收数据大小      \~english Received packet size
     ('nLostPacketCount', int64_t),          # < \~chinese 丢失的包数量        \~english Number of packets lost
     ('nLostFrameCount', c_uint),            # < \~chinese 丢帧数量           \~english Number of frames lost
     ('nNetRecvFrameCount', c_uint),         # < \~chinese 收到帧计数           \~english Receive Frame count
@@ -396,7 +396,7 @@ MV_MATCH_INFO_NET_DETECT = _MV_MATCH_INFO_NET_DETECT_
 class _MV_MATCH_INFO_USB_DETECT_(Structure):
     pass
 _MV_MATCH_INFO_USB_DETECT_._fields_ = [
-    ('nReceiveDataSize', int64_t),   # < \~chinese 已接收数据大小      \~english Received data size
+    ('nReceiveDataSize', int64_t),   # < \~chinese 已接收数据大小      \~english Received packet size
     ('nReceivedFrameCount', c_uint), # < \~chinese 已收到的帧数        \~english Number of frames received
     ('nErrorFrameCount', c_uint),    # < \~chinese 错误帧数            \~english Number of error frames
     ('nReserved', c_uint * 2),       # < \~chinese 保留字节            \~english Reserved bytes
@@ -420,19 +420,19 @@ MV_DISPLAY_FRAME_INFO = _MV_DISPLAY_FRAME_INFO_
 # values for enumeration 'MV_SAVE_POINT_CLOUD_FILE_TYPE'
 MV_SAVE_POINT_CLOUD_FILE_TYPE = c_int # enum
 
-# \~chinese 保存3D数据到缓存    \~english Save 3D data to buffer
+# \~chinese 保存3D数据到缓存    \~english Save 3D packet to buffer
 class _MV_SAVE_POINT_CLOUD_PARAM_(Structure):
     pass
 _MV_SAVE_POINT_CLOUD_PARAM_._fields_ = [
     ('nLinePntNum', c_uint),                                 # < \~chinese 每一行点的数量，即图像宽                                             \~english The number of points in each row,which is the width of the image
     ('nLineNum', c_uint),                                    # < \~chinese 行数，即图像高                                                       \~english The number of rows,which is the height of the image
-    ('enSrcPixelType', MvGvspPixelType),                     # < \~chinese 输入数据的像素格式                                                    \~english The pixel format of the input data
-    ('pSrcData', POINTER(c_ubyte)),                          # < \~chinese 输入数据缓存                                                          \~english Input data buffer
-    ('nSrcDataLen', c_uint),                                 # < \~chinese 输入数据大小                                                           \~english Input data size
-    ('pDstBuf', POINTER(c_ubyte)),                           # < \~chinese 输出像素数据缓存                                                        \~english Output pixel data buffer
+    ('enSrcPixelType', MvGvspPixelType),                     # < \~chinese 输入数据的像素格式                                                    \~english The pixel format of the input packet
+    ('pSrcData', POINTER(c_ubyte)),                          # < \~chinese 输入数据缓存                                                          \~english Input packet buffer
+    ('nSrcDataLen', c_uint),                                 # < \~chinese 输入数据大小                                                           \~english Input packet size
+    ('pDstBuf', POINTER(c_ubyte)),                           # < \~chinese 输出像素数据缓存                                                        \~english Output pixel packet buffer
     ('nDstBufSize', c_uint),                                 # < \~chinese 提供的输出缓冲区大小(nLinePntNum * nLineNum * (16*3 + 4) + 2048)         \~english Output buffer size provided (nLinePntNum * nLineNum * (16*3 + 4) + 2048) 
-    ('nDstBufLen', c_uint),                                  # < \~chinese 输出像素数据缓存长度                                                     \~english Output pixel data buffer size
-    ('enPointCloudFileType', MV_SAVE_POINT_CLOUD_FILE_TYPE), # < \~chinese 提供输出的点云文件类型                                                    \~english Output point data file type provided
+    ('nDstBufLen', c_uint),                                  # < \~chinese 输出像素数据缓存长度                                                     \~english Output pixel packet buffer size
+    ('enPointCloudFileType', MV_SAVE_POINT_CLOUD_FILE_TYPE), # < \~chinese 提供输出的点云文件类型                                                    \~english Output point packet file type provided
     ('nReserved', c_uint * 8),                               # < \~chinese 保留字节                                                                 \~english Reserved bytes
 ]
 MV_SAVE_POINT_CLOUD_PARAM = _MV_SAVE_POINT_CLOUD_PARAM_
@@ -485,7 +485,7 @@ MV_SAVE_IMAGE_PARAM_EX3 = _MV_SAVE_IMAGE_PARAM_EX3_
 class _MV_SAVE_IMG_TO_FILE_PARAM_(Structure):
     pass
 _MV_SAVE_IMG_TO_FILE_PARAM_._fields_ = [
-    ('enPixelType', MvGvspPixelType),    # < \~chinese 输入数据的像素格式                    \~english The pixel format of the input data
+    ('enPixelType', MvGvspPixelType),    # < \~chinese 输入数据的像素格式                    \~english The pixel format of the input packet
     ('pData', POINTER(c_ubyte)),         # < \~chinese 输入数据缓存                          \~english Input Data Buffer
     ('nDataLen', c_uint),                # < \~chinese 输入数据大小                           \~english Input Data Size
     ('nWidth', c_ushort),                # < \~chinese 图像宽                                  \~english Image Width
@@ -506,7 +506,7 @@ _MV_SAVE_IMAGE_TO_FILE_PARAM_EX_._fields_ = [
     ('nWidth', c_uint),  # < \~chinese 图像宽                                  \~english Image Width
     ('nHeight', c_uint),  # < \~chinese 图像高                                 \~english Image Height
     ('enPixelType', MvGvspPixelType),
-    # < \~chinese 输入数据的像素格式                    \~english The pixel format of the input data
+    # < \~chinese 输入数据的像素格式                    \~english The pixel format of the input packet
     ('pData', POINTER(c_ubyte)),  # < \~chinese 输入数据缓存                          \~english Input Data Buffer
     ('nDataLen', c_uint),  # < \~chinese 输入数据大小                           \~english Input Data Size
 
@@ -529,11 +529,11 @@ _MV_CC_PIXEL_CONVERT_PARAM_T_._fields_ = [
     ('nWidth', c_ushort),                # < \~chinese 图像宽             \~english Image Width
     ('nHeight', c_ushort),               # < \~chinese 图像高              \~english Image Height
     ('enSrcPixelType', MvGvspPixelType), # < \~chinese 源像素格式            \~english Source pixel format
-    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english Input data size
+    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english Input packet size
     ('enDstPixelType', MvGvspPixelType), # < \~chinese 目标像素格式             \~english Destination pixel format
-    ('pDstBuffer', POINTER(c_ubyte)),    # < \~chinese 输出数据缓存              \~english Output data buffer
-    ('nDstLen', c_uint),                 # < \~chinese 输出数据大小               \~english Output data size
+    ('pDstBuffer', POINTER(c_ubyte)),    # < \~chinese 输出数据缓存              \~english Output packet buffer
+    ('nDstLen', c_uint),                 # < \~chinese 输出数据大小               \~english Output packet size
     ('nDstBufferSize', c_uint),          # < \~chinese 提供的输出缓冲区大小         \~english Provided outbut buffer size
     ('nRes', c_uint * 4),                # < \~chinese 保留字节                     \~english Reserved bytes
 ]
@@ -545,11 +545,11 @@ _MV_PIXEL_CONVERT_PARAM_EX_T_._fields_ = [
     ('nWidth', c_uint),                # < \~chinese 图像宽             \~english Image Width
     ('nHeight', c_uint),               # < \~chinese 图像高              \~english Image Height
     ('enSrcPixelType', MvGvspPixelType), # < \~chinese 源像素格式            \~english Source pixel format
-    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english Input data size
+    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english Input packet size
     ('enDstPixelType', MvGvspPixelType), # < \~chinese 目标像素格式             \~english Destination pixel format
-    ('pDstBuffer', POINTER(c_ubyte)),    # < \~chinese 输出数据缓存              \~english Output data buffer
-    ('nDstLen', c_uint),                 # < \~chinese 输出数据大小               \~english Output data size
+    ('pDstBuffer', POINTER(c_ubyte)),    # < \~chinese 输出数据缓存              \~english Output packet buffer
+    ('nDstLen', c_uint),                 # < \~chinese 输出数据大小               \~english Output packet size
     ('nDstBufferSize', c_uint),          # < \~chinese 提供的输出缓冲区大小         \~english Provided outbut buffer size
     ('nRes', c_uint * 4),                # < \~chinese 保留字节                     \~english Reserved bytes
 ]
@@ -627,8 +627,8 @@ _MV_EVENT_OUT_INFO_._fields_ = [
     ('nBlockIdLow', c_uint),                     # < \~chinese 帧号低位             \~english BlockId low
     ('nTimestampHigh', c_uint),                  # < \~chinese 时间戳高位            \~english Timestramp high
     ('nTimestampLow', c_uint),                   # < \~chinese 时间戳低位             \~english Timestramp low
-    ('pEventData', c_void_p),                    # < \~chinese Event数据              \~english Event data
-    ('nEventDataSize', c_uint),                  # < \~chinese Event数据长度           \~english Event data len
+    ('pEventData', c_void_p),                    # < \~chinese Event数据              \~english Event packet
+    ('nEventDataSize', c_uint),                  # < \~chinese Event数据长度           \~english Event packet len
     ('nReserved', c_uint * 16),                  # < \~chinese 保留字节                 \~english Reserved bytes
 ]
 MV_EVENT_OUT_INFO = _MV_EVENT_OUT_INFO_
@@ -691,7 +691,7 @@ _MV_ACTION_CMD_RESULT_T._fields_ = [
     #1.0x0000:success.
     #2.0x8001:Command is not supported by the device.
     #3.0x8013:The device is not synchronized to a master clock to be used as time reference.
-    #4.0x8015:A device queue or packet data has overflowed.
+    #4.0x8015:A device queue or packet packet has overflowed.
     #5.0x8016:The requested scheduled action command was requested at a time that is already past.
     ('nStatus', c_int),                 # < \~chinese 状态码            \~english status
     ('nReserved', c_uint * 4),          # < \~chinese 预留              \~english Reserved bytes
@@ -718,7 +718,7 @@ class _MVCC_ENUMVALUE_T(Structure):
     pass
 _MVCC_ENUMVALUE_T._fields_ = [
     ('nCurValue', c_uint),                               # < \~chinese 当前值                \~english Current Value
-    ('nSupportedNum', c_uint),                           # < \~chinese 数据的有效数据个数      \~english Number of valid data
+    ('nSupportedNum', c_uint),                           # < \~chinese 数据的有效数据个数      \~english Number of valid packet
     ('nSupportValue', c_uint * MV_MAX_XML_SYMBOLIC_NUM), # < \~chinese 支持值列表              \~english Support value list
     ('nReserved', c_uint * 4),                           # < \~chinese 预留                    \~english Reserved bytes
 ]
@@ -801,13 +801,13 @@ MV_CC_FRAME_SPEC_INFO = _MV_CC_FRAME_SPEC_INFO_
 class _MV_CC_HB_DECODE_PARAM_T_(Structure):
     pass
 _MV_CC_HB_DECODE_PARAM_T_._fields_ = [
-    ('pSrcBuf', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcLen', c_uint),                # < \~chinese 输入数据大小           \~english Input data size
+    ('pSrcBuf', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcLen', c_uint),                # < \~chinese 输入数据大小           \~english Input packet size
     ('nWidth', c_uint),                 # < \~chinese 图像宽                \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高                \~english Image Height
-    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output data buffer
+    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output packet buffer
     ('nDstBufSize', c_uint),            # < \~chinese 提供的输出缓冲区大小     \~english Provided output buffer size
-    ('nDstBufLen', c_uint),             # < \~chinese 输出数据大小            \~english Output data size
+    ('nDstBufLen', c_uint),             # < \~chinese 输出数据大小            \~english Output packet size
     ('enDstPixelType', MvGvspPixelType),  # < \~chinese 输出的像素格式        \~english Output pixel format
     ('stFrameInfo', MV_CC_FRAME_SPEC_INFO),  # < \~chinese 水印信息          \~english Frame Spec Info
     ('nRes', c_uint * 8),                 # < \~chinese 保留字节             \~english Reserved bytes
@@ -845,10 +845,10 @@ _MV_CC_ROTATE_IMAGE_PARAM_T_._fields_ = [
     ('enPixelType', MvGvspPixelType),   # < \~chinese 像素格式              \~english pixel format
     ('nWidth', c_uint),                 # < \~chinese 图像宽                \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高                \~english Image Height
-    ('pSrcData', POINTER(c_ubyte)),     # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcDataLen', c_uint),            # < \~chinese 输入数据大小           \~english Input data length
-    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output data buffer
-    ('nDstBufLen', c_uint),             # < \~chinese输出数据长度            \~english Output data length
+    ('pSrcData', POINTER(c_ubyte)),     # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcDataLen', c_uint),            # < \~chinese 输入数据大小           \~english Input packet length
+    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output packet buffer
+    ('nDstBufLen', c_uint),             # < \~chinese输出数据长度            \~english Output packet length
     ('nDstBufSize', c_uint),            # < \~chinese  提供的输出缓冲区大小    \~english Provided output buffer size
     ('enRotationAngle', MV_IMG_ROTATION_ANGLE),   # < \~chinese  旋转角度               \~english Rotation angle
     ('nRes', c_uint * 8),               # < \~chinese 保留字节               \~english Reserved bytes
@@ -862,10 +862,10 @@ _MV_CC_FLIP_IMAGE_PARAM_T_._fields_ = [
     ('enPixelType', MvGvspPixelType),   # < \~chinese 像素格式              \~english pixel format
     ('nWidth', c_uint),                 # < \~chinese 图像宽                \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高                \~english Image Height
-    ('pSrcData', POINTER(c_ubyte)),     # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcDataLen', c_uint),            # < \~chinese 输入数据大小           \~english Input data length
-    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output data buffer
-    ('nDstBufLen', c_uint),             # < \~chinese输出数据长度            \~english Output data length
+    ('pSrcData', POINTER(c_ubyte)),     # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcDataLen', c_uint),            # < \~chinese 输入数据大小           \~english Input packet length
+    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存           \~english Output packet buffer
+    ('nDstBufLen', c_uint),             # < \~chinese输出数据长度            \~english Output packet length
     ('nDstBufSize', c_uint),            # < \~chinese  提供的输出缓冲区大小    \~english Provided output buffer size
     ('enFlipType', MV_IMG_FLIP_TYPE),   # < \~chinese  翻转类型              \~english Flip type
     ('nRes', c_uint * 8),               # < \~chinese 保留字节               \~english Reserved bytes
@@ -912,12 +912,12 @@ class _MV_CC_CONTRAST_PARAM_T_(Structure):
 _MV_CC_CONTRAST_PARAM_T_._fields_ = [
     ('nWidth', c_uint),                 # < \~chinese 图像宽(最小8)         \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高(最小8)         \~english Image Height
-    ('pSrcBuf', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input data buffer
-    ('nSrcBufLen', c_uint),             # < \~chinese 输入数据大小           \~english Input data length
+    ('pSrcBuf', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english Input packet buffer
+    ('nSrcBufLen', c_uint),             # < \~chinese 输入数据大小           \~english Input packet length
     ('enPixelType', MvGvspPixelType),   # < \~chinese 像素格式               \~english pixel format
-    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存          \~english Output data buffer
+    ('pDstBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存          \~english Output packet buffer
     ('nDstBufSize', c_uint),            # < \~chinese提供的输出缓冲区大小     \~english Provided output buffer size
-    ('nDstBufLen', c_uint),            # < \~chinese  输出数据长度           \~english Output data length
+    ('nDstBufLen', c_uint),            # < \~chinese  输出数据长度           \~english Output packet length
     ('nContrastFactor', c_uint),       # < \~chinese  对比度值，[1,10000]    \~english Contrast factor,[1,10000]
     ('nRes', c_uint * 8),                 # < \~chinese 保留字节             \~english Reserved bytes
 ]
@@ -1014,8 +1014,8 @@ _MV_OUTPUT_IMAGE_INFO_._fields_ = [
     ('nWidth', c_uint),                 # < \~chinese 图像宽                \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高                \~english Image Height
     ('enPixelType', MvGvspPixelType),   # < \~chinese 像素格式               \~english pixel format
-    ('pBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存          \~english Output data buffer
-    ('nBufLen', c_uint),             # < \~chinese 输出数据长度          \~english Output data length
+    ('pBuf', POINTER(c_ubyte)),      # < \~chinese 输出数据缓存          \~english Output packet buffer
+    ('nBufLen', c_uint),             # < \~chinese 输出数据长度          \~english Output packet length
     ('nBufSize', c_uint),            # < \~chinese  提供的输出缓冲区大小  \~english Provided output buffer size
     ('nRes', c_uint * 8),                 # < \~chinese 保留字节             \~english Reserved bytes
 ]
@@ -1028,11 +1028,11 @@ _MV_RECONSTRUCT_IMAGE_PARAM_._fields_ = [
     ('nWidth', c_uint),                 # < \~chinese 图像宽                \~english Image Width
     ('nHeight', c_uint),                # < \~chinese 图像高                \~english Image Height
     ('enPixelType', MvGvspPixelType),   # < \~chinese 像素格式               \~english pixel format
-    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english input data buffer
-    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english input data size
+    ('pSrcData', POINTER(c_ubyte)),      # < \~chinese 输入数据缓存           \~english input packet buffer
+    ('nSrcDataLen', c_uint),             # < \~chinese 输入数据大小            \~english input packet size
     ('nExposureNum', c_uint),            # < \~chinese  曝光个数(1-8]     \~english Exposure number
     ('enReconstructMethod', MV_IMAGE_RECONSTRUCTION_METHOD),   # < \~chinese 图像重构方式      \~english Image restructuring method
-    ('stDstBufList', MV_OUTPUT_IMAGE_INFO * MV_MAX_SPLIT_NUM),  # < \~chinese 输出数据缓存信息  \~english Output data info
+    ('stDstBufList', MV_OUTPUT_IMAGE_INFO * MV_MAX_SPLIT_NUM),  # < \~chinese 输出数据缓存信息  \~english Output packet info
     ('nRes', c_uint * 4),                 # < \~chinese 保留字节             \~english Reserved bytes
 ]
 MV_RECONSTRUCT_IMAGE_PARAM = _MV_RECONSTRUCT_IMAGE_PARAM_
@@ -1041,9 +1041,9 @@ MV_RECONSTRUCT_IMAGE_PARAM = _MV_RECONSTRUCT_IMAGE_PARAM_
 class _MV_CC_FILE_ACCESS_E(Structure):
     pass
 _MV_CC_FILE_ACCESS_E._fields_ = [
-    ('pUserFileBuf', POINTER(c_char)),  # < \~chinese 用户文件数据        \~english User file data
-    ('pFileBufSize', c_uint),  # < \~chinese 用户数据缓存大小       \~english data buffer size
-    ('pFileBufLen', c_uint),   # < \~chinese 用户数据缓存长度       \~english data buffer len
+    ('pUserFileBuf', POINTER(c_char)),  # < \~chinese 用户文件数据        \~english User file packet
+    ('pFileBufSize', c_uint),  # < \~chinese 用户数据缓存大小       \~english packet buffer size
+    ('pFileBufLen', c_uint),   # < \~chinese 用户数据缓存长度       \~english packet buffer len
     ('pDevFileName', STRING),           # < \~chinese 设备文件名          \~english Device file name
     ('nReserved', c_uint * 32),         # < \~chinese 保留字节            \~english Reserved bytes
 ]

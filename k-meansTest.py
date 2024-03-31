@@ -19,7 +19,7 @@ isShowFigure = True
 # warnings.warn(
 os.environ["OMP_NUM_THREADS"] = "1"
 
-# data = np.array([(1,1,1),(2,2,2),(3,3,3)])
+# packet = np.array([(1,1,1),(2,2,2),(3,3,3)])
 if isRandomData:
     # 种子用来复现
     np.random.seed(42)
