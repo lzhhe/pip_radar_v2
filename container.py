@@ -137,7 +137,6 @@ def calculate_score(IOU, conf, weightC, weightI):
     return IOU * weightI + conf * weightC
 
 
-# 总体需要给出的参数
 class Container:
 
     def __init__(self, id, box):
@@ -255,3 +254,6 @@ class Container:
 
     def showLocation(self):
         return getTargetImageCoordinates(self.box, self.distance)
+
+    def showRealLocation(self):
+        return calculate2DPosition(self.box, self.distance)

@@ -15,6 +15,8 @@ from fps_counter import FPSCounter
 # from init_camera import buffer
 from container import Container
 
+from communication import *
+
 # 超参数和配置
 use_video = True
 showLocation = True
@@ -219,12 +221,18 @@ def tracker():
             cv2.putText(frame, label_text, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             container.print_info()
 
+            # 这里传出传入距离 通过点云
+            # 记得使用container当中的距离进行修改，否则传输不上
+
+
+
             if showLocation == True:
                 x_pixel, y_pixel = container.showLocation()  # 图片显示
                 cv2.circle(current_battlefield_img, (int(x_pixel), int(y_pixel)), radius=10, color=(0, 0, 255),
                            thickness=-1)
                 cv2.putText(current_battlefield_img, f"ID: {container.id}", (int(x_pixel), int(y_pixel) - 15),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
 
         if showLocation == True:
             cv2.imshow("Battlefield with Coordinates", current_battlefield_img)
