@@ -158,7 +158,6 @@ class Container:
         ])
 
         self.flag = 0  # 正确帧数标志位
-        # self.level = 1  # 用于后续升级机制使用
 
         self.distance = 0
         self.disOffset = 0  # 距离矫正偏移值 这部分以后可能有用
@@ -176,7 +175,6 @@ class Container:
         self.flagLimit = armor_flag_limit.get(label_name)
 
     def updateLabel(self, armorDict):
-        # print("self.label: ", self.label)
         if self.label is None or self.flag > self.flagLimit or self.flag == 0:  # 未分类/没有到限制不重置
 
             tempLabel = ""

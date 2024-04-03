@@ -211,8 +211,8 @@ def tracker():
 
         containerDict.clear()
         containerDict.update(tempContainerDict)
-
-        current_battlefield_img = battlefield_img.copy()  # 复制一张原图准备刷新
+        if showLocation == True:
+            current_battlefield_img = battlefield_img.copy()  # 复制一张原图准备刷新
 
         for container in containerDict.values():
             box = container.box
@@ -232,7 +232,6 @@ def tracker():
                            thickness=-1)
                 cv2.putText(current_battlefield_img, f"ID: {container.id}", (int(x_pixel), int(y_pixel) - 15),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
 
         if showLocation == True:
             cv2.imshow("Battlefield with Coordinates", current_battlefield_img)

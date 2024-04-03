@@ -66,12 +66,11 @@ def send_packet(serial_port, packet_builder, rate_hz=10):
         print("Stopping packet sending.")
 
     finally:
-        # 关闭串口
         serial_port.close()
 
 
 def receive_packet(serial_port, packet_parser, rate_hz=5):
-    interval = 1.0 / rate_hz  # 计算接收间隔时间（单位是秒）
+    interval = 1.0 / rate_hz
 
     # 打开串口
     if not serial_port.is_open:
@@ -93,14 +92,12 @@ def receive_packet(serial_port, packet_parser, rate_hz=5):
                 except ValueError as e:
                     print(f"Error parsing packet: {e}")
 
-            # 等待剩余的时间，以维持5Hz的频率
             elapsed_time = time.time() - start_time
             time_to_wait = interval - elapsed_time
             if time_to_wait > 0:
                 time.sleep(time_to_wait)
 
     except KeyboardInterrupt:
-        # 按Ctrl+C退出程序
         print("Stopping packet reception.")
 
     finally:
