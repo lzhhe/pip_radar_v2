@@ -149,7 +149,7 @@ def trackerProcess(model, trackerPipe, updateLabelPipe) -> None:
     except Exception as e:
         print(e)
 
-    tempDict = (carDict, armorDict)
+    tempDict = (carDict, armorDict)  # 发送一个元素
     updateLabelPipe.send(tempDict)
 
 
@@ -186,7 +186,7 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
         kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
 
 
-def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe):
+def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
     containerDict = kmeansContainerPipe.recv()
     depth_map = kmeansDepthPipe.recv()
     for id in containerDict:
@@ -196,7 +196,7 @@ def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe):
     distancePipe.send(containerDict)  # 这里是已经更新过距离的
 
 
-def transformProcess(distancePipe, locationPipe):
+def transformProcess(distancePipe, locationPipe) -> None:
     containerDict = distancePipe.recv()
     for id in containerDict:
         container = containerDict[id]
@@ -204,7 +204,7 @@ def transformProcess(distancePipe, locationPipe):
     locationPipe.send(containerDict)  # 最终坐标
 
 
-def resultProcess(locationPipe):
+def resultProcess(locationPipe) -> None:
     containerDict = locationPipe.recv()
     for id in containerDict:
         container = containerDict[id]
@@ -237,8 +237,6 @@ def main() -> None:
     kmeansDepthPipe = Pipe(duplex=False)  # 发送点云转换的深度图
     distancePipe = Pipe(duplex=False)  # 发送距离数据
     locationPipe = Pipe(duplex=False)  # 发送最终世界坐标
-
-
 
     # 进程列表
     process = [Process(target=frameProcess),
