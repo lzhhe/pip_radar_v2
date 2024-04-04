@@ -1,37 +1,21 @@
 import os
 from multiprocessing import Pipe, Process
-from queue import Queue
-
 from kmeans import KmeansCalculate
-
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import threading
-
 import cv2
-import time
-import numpy as np
-
 import hikcam
-
 from ultralytics import YOLO
-
 from fps_counter import FPSCounter
-# from init_camera import buffer
 from container import Container
 
 # 超参数和配置
 use_video = True
-showLocation = True
-show_result = True
-battlefield_img = cv2.imread("battlefield.png")
 pt_file = "huazhongv8.pt"
 test_video_file = "test2.mp4"
-
 enemy = "blue"
-
 framexxx = None
 con = threading.Condition()
-
 robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
     "armor1red": 1,
     "armor2red": 2,
@@ -149,7 +133,7 @@ def trackerProcess(model, trackerPipe, updateLabelPipe) -> None:
     except Exception as e:
         print(e)
 
-    tempDict = (carDict, armorDict)  # 发送一个元素
+    tempDict = (carDict, armorDict)  # 只发送一个元素
     updateLabelPipe.send(tempDict)
 
 

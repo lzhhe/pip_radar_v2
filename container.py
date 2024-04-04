@@ -332,7 +332,7 @@ class Container:
     # 这部分只是显示，不写在类里面了
     def transformToImage(self):
         # 将实际坐标转换为图片上的像素坐标
-        x_abs, y_abs = self.calculate2DPosition()
+        x_abs, y_abs = self.xLocation, self.yLocation
         x_pixel = x_abs / actual_width * imgSize[0]
         y_pixel = y_abs / actual_height * imgSize[1]
         # print("pixel:", x_pixel, y_pixel)
