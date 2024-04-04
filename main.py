@@ -32,6 +32,22 @@ enemy = "blue"
 framexxx = None
 con = threading.Condition()
 
+robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
+    "armor1red": 1,
+    "armor2red": 2,
+    "armor3red": 3,
+    "armor4red": 4,
+    "armor5red": 5,
+    "armor6red": 7,
+
+    "armor1blue": 101,
+    "armor2blue": 102,
+    "armor3blue": 103,
+    "armor4blue": 104,
+    "armor5blue": 105,
+    "armor6blue": 107,
+}
+
 
 def get_img():
     global con
@@ -52,7 +68,7 @@ def get_img():
     cap.close_device()
 
 
-def process_video(trackerPipe) -> None:  # model是v8初始化模型
+def frameProcess(trackerPipe) -> None:  # model是v8初始化模型
     if use_video == True:
         model = YOLO(pt_file)
         cap = cv2.VideoCapture(test_video_file)
@@ -86,24 +102,17 @@ def process_video(trackerPipe) -> None:  # model是v8初始化模型
         t_camera.daemon = True
         t_camera.start()
         print("相机开始运行")
-
         while 1:
-
             con.wait()
             if framexxx is None:
                 con.notify()
                 continue
             frame = framexxx.copy()
             con.notify_all()
-
             fps_counter.tick()
-
             trackerPipe.send(frame)
-
             print("FPS:", fps_counter.fps)
-
         t_camera.join()
-
         cv2.destroyAllWindows()
 
 
@@ -174,18 +183,40 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
         for id in containerDict:
             if enemy in tempContainerDict[id].label:
                 enemyDict[id] = tempContainerDict[id]
-        kmeansContainerPipe.send(enemyDict)
+        kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
 
 
-def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe,distancePipe):
+def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe):
     containerDict = kmeansContainerPipe.recv()
     depth_map = kmeansDepthPipe.recv()
     for id in containerDict:
         kmeansCalculate = KmeansCalculate(containerDict[id], depth_map)
         kmeansCalculate.kmeans_classify()
 
-    distancePipe.send(containerDict) # 这里是已经更新过的
+    distancePipe.send(containerDict)  # 这里是已经更新过距离的
 
+
+def transformProcess(distancePipe, locationPipe):
+    containerDict = distancePipe.recv()
+    for id in containerDict:
+        container = containerDict[id]
+        container.calculate2DPosition()
+    locationPipe.send(containerDict)  # 最终坐标
+
+
+def resultProcess(locationPipe):
+    containerDict = locationPipe.recv()
+    for id in containerDict:
+        container = containerDict[id]
+        label = containerDict
+        xLocation = container.xLocation
+        yLocation = container.yLocation
+
+        robotId = robotIdDict[label]
+
+        # 等待组包
+
+        print("robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
 def main() -> None:
@@ -204,12 +235,18 @@ def main() -> None:
     updateLabelPipe = Pipe(duplex=False)  # 发送每一帧的目标检测框
     kmeansContainerPipe = Pipe(duplex=False)  # 发送敌方容器列表
     kmeansDepthPipe = Pipe(duplex=False)  # 发送点云转换的深度图
+    distancePipe = Pipe(duplex=False)  # 发送距离数据
+    locationPipe = Pipe(duplex=False)  # 发送最终世界坐标
 
-    distancePipe = Pipe(duplex=False)
+
 
     # 进程列表
-    process = [Process(target=trackerProcess),
-               Process(target=trackerProcess)]
+    process = [Process(target=frameProcess),
+               Process(target=trackerProcess),
+               Process(target=updateLabelProcess),
+               Process(target=kmeansProcess),
+               Process(target=transformProcess),
+               Process(target=resultProcess)]
 
     [p.start() for p in process]
     [p.join() for p in process]

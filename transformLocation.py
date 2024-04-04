@@ -7,6 +7,7 @@
 # 地面z轴位0
 # 高台高度待定
 # distance 单位为m
+# 本程序为测试用
 import math
 
 imgSize = [1503, 829]  # 测试图片尺寸
