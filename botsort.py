@@ -15,13 +15,12 @@ from fps_counter import FPSCounter
 # from init_camera import buffer
 from container import Container
 
-from communication import *
+
 
 # 超参数和配置
 use_video = True
 showLocation = True
-battlefield_img = cv2.imread("E:/Desktop/pip_radar_v2/battlefield.png")
-camera_index = 0  # 相机索引
+battlefield_img = cv2.imread("battlefield.png")
 yaml_file = "yolov8s.yaml"
 pt_file = "huazhongv8.pt"
 tracker_yaml = "botsort.yaml"
@@ -208,7 +207,7 @@ def tracker():
 
         except Exception as e:
             print(e)
-
+        # 需要改成敌方的容器
         containerDict.clear()
         containerDict.update(tempContainerDict)
         if showLocation == True:
@@ -219,12 +218,10 @@ def tracker():
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
             label_text = f"{container.label} Id {container.id} {container.score:.2f} {container.distance:.2f} M"
             cv2.putText(frame, label_text, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            container.print_info()
+            # container.print_info()
 
             # 这里传出传入距离 通过点云
             # 记得使用container当中的距离进行修改，否则传输不上
-
-
 
             if showLocation == True:
                 x_pixel, y_pixel = container.showLocation()  # 图片显示

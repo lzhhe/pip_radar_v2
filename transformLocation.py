@@ -58,17 +58,18 @@ def calculate2DPosition(box, distance):
     # 计算相对于雷达的位置
     x_rel = d_h * math.cos(yaw)
     y_rel = d_h * math.sin(yaw)
-    print("rel: ", x_rel, y_rel)
+    # print("rel: ", x_rel, y_rel)
 
     # 转换为场地坐标系中的绝对位置
     x_abs = x_rel + radarPosition[0]  # 初始雷达位置是负的
     y_abs = y_rel + radarPosition[1]
 
-    print("abs:", x_abs, y_abs)
+    # print("abs:", x_abs, y_abs)
 
     return x_abs, y_abs
 
 
+# 实际连上服务器之后不使用这个
 def transformToImage(x_abs, y_abs):
     # 将实际坐标转换为图片上的像素坐标
     x_pixel = x_abs / actual_width * imgSize[0]
@@ -81,3 +82,6 @@ def getTargetImageCoordinates(box, distance):
     x_abs, y_abs = calculate2DPosition(box, distance)
     x_pixel, y_pixel = transformToImage(x_abs, y_abs)
     return x_pixel, y_pixel
+
+
+

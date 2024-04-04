@@ -1,3 +1,5 @@
+import os
+os.environ['OMP_NUM_THREADS'] = '3'
 import concurrent.futures
 import time
 
@@ -6,6 +8,7 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
 from container import Container
+
 
 # kmeans 时间复杂度为O(nkt) k=3, t=5
 class KmeansCalculate:
@@ -54,19 +57,25 @@ class KmeansCalculate:
 
 
 if __name__ == "__main__":
-    container = Container(id=1, box=[190, 190, 200, 200])
-    depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
-
     start_time = time.time()
-    kmeansCalculate = KmeansCalculate(container, depth_map)
-    kmeansCalculate.kmeans_classify()
+    for i in range(5):
+        box = [np.random.randint(100, 300), np.random.randint(200, 400), np.random.randint(300, 500),
+               np.random.randint(400, 600)]
+        container = Container(id=i + 1, box=box)
+        depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
+
+        kmeansCalculate = KmeansCalculate(container, depth_map)
+        kmeansCalculate.kmeans_classify()
+
+        print("Final distance with kmeans: ", kmeansCalculate.final_distance)
     end_time = time.time()
     print("KMeans Classification completed in {:.2f} seconds.".format(end_time - start_time))
 
-    print("Final distance with kmeans: ", kmeansCalculate.final_distance)
     # 显示深度图
-    plt.figure(figsize=(14.4, 10.8))  # 按照比例调整图像大小
-    plt.imshow(depth_map, cmap='gray')  # 使用灰度色彩映射
-    plt.colorbar(label='Depth')
-    plt.title('Depth Map')
-    plt.show()
+    # plt.figure(figsize=(14.4, 10.8))  # 按照比例调整图像大小
+    # plt.imshow(depth_map, cmap='gray')  # 使用灰度色彩映射
+    # plt.colorbar(label='Depth')
+    # plt.title('Depth Map')
+    # plt.show()
+
+
