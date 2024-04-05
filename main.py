@@ -19,10 +19,9 @@ from container import Container
 use_video = True
 pt_file = "huazhongv8.pt"
 test_video_file = "test2.mp4"
-enemy = "blue"
+enemy = "red"
 framexxx = None
 con = threading.Condition()
-
 
 
 def get_img():
@@ -162,7 +161,7 @@ def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
     while True:
         containerDict = kmeansContainerPipe.recv()
         # depth_map = kmeansDepthPipe.recv() # 等待深度转化进程的深度图像，这部分需要根据相机的分辨率来改
-        depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
+        depth_map = np.random.randint(0, 256, (1080, 1920)).astype(np.float32)
 
         for id in containerDict:
             kmeansCalculate = KmeansCalculate(containerDict[id], depth_map)
@@ -202,7 +201,6 @@ def resultProcess(locationPipe) -> None:
         for id in containerDict:
             container = containerDict[id]
             label = containerDict[id].label
-            print(label)
             xLocation = container.xLocation
             yLocation = container.yLocation
 
@@ -210,7 +208,7 @@ def resultProcess(locationPipe) -> None:
 
             # 等待组包
             # 暂时打印所有的目标和实际坐标
-            print("robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
+            print("Id: ", id, "robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
 def main() -> None:

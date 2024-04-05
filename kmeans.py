@@ -33,6 +33,9 @@ class KmeansCalculate:
     def process_area(self, area):
         x1, y1, x2, y2 = map(int, area)
         cropped = self.depth_map[y1:y2, x1:x2].reshape(-1, 1)
+        if cropped.size == 0:
+            print("空的裁剪区域，跳过 KMeans 聚类")
+            return 0
         kmeans = KMeans(n_clusters=3, max_iter=self.max_iter, tol=self.tol)
         labels = kmeans.fit_predict(cropped)
         centers = kmeans.cluster_centers_
