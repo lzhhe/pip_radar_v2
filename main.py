@@ -1,11 +1,17 @@
 import os
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe, Process, set_start_method
+
+import numpy as np
+
 from kmeans import KmeansCalculate
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import threading
 import cv2
 import hikcam
+
 from ultralytics import YOLO
+
 from fps_counter import FPSCounter
 from container import Container
 
@@ -53,25 +59,16 @@ def get_img():
 
 
 def frameProcess(trackerPipe) -> None:  # model是v8初始化模型
+    print("enter frameProcess")
     if use_video == True:
-        model = YOLO(pt_file)
         cap = cv2.VideoCapture(test_video_file)
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
-            results = model.track(frame, persist=True, tracker="botsort.yaml")
-            boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
-            labels = results[0].boxes.cls.cpu().numpy()
-            confs = results[0].boxes.conf.cpu().numpy()
-            try:
-                ids = results[0].boxes.id.cpu().numpy().astype(int)
-            # 加个显示逻辑看画面
-            except Exception as e:
-                print(e)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            trackerPipe.send(frame)
+            # cv2.imshow("frame", frame)
+            print("send frame in pipe")
         cap.release()
         cv2.destroyAllWindows()
         return
@@ -102,6 +99,7 @@ def frameProcess(trackerPipe) -> None:  # model是v8初始化模型
 
 # 推理进程 反馈所有识别框
 def trackerProcess(model, trackerPipe, updateLabelPipe) -> None:
+    print("enter trackerProcess")
     frame = trackerPipe.recv()
     carDict = {}  # 存储car的检测结果：id : [box, label, conf]
     armorDict = {}  # 存储armor的检测结果：id : [box, label, conf]
@@ -138,6 +136,7 @@ def trackerProcess(model, trackerPipe, updateLabelPipe) -> None:
 
 
 def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
+    print("enter updateLabelProcess")
     containerDict = {}
     while 1:
         tempContainerDict = {}
@@ -168,11 +167,15 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
             if enemy in tempContainerDict[id].label:
                 enemyDict[id] = tempContainerDict[id]
         kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
+        print(enemyDict)
 
 
 def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
+    print("enter kmeansContainerPipe")
     containerDict = kmeansContainerPipe.recv()
-    depth_map = kmeansDepthPipe.recv()
+    # depth_map = kmeansDepthPipe.recv() # 等待深度转化进程的深度图像，这部分需要根据相机的分辨率来改
+    depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
+
     for id in containerDict:
         kmeansCalculate = KmeansCalculate(containerDict[id], depth_map)
         kmeansCalculate.kmeans_classify()
@@ -181,6 +184,7 @@ def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
 
 
 def transformProcess(distancePipe, locationPipe) -> None:
+    print("enter transformProcess")
     containerDict = distancePipe.recv()
     for id in containerDict:
         container = containerDict[id]
@@ -199,13 +203,15 @@ def resultProcess(locationPipe) -> None:
         robotId = robotIdDict[label]
 
         # 等待组包
-
+        # 暂时打印所有的目标和实际坐标
         print("robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
 def main() -> None:
     # __init__
     model = YOLO(pt_file)  # 模型初始化
+
+    set_start_method('spawn')
 
     # 主程序 相机图像获取，以及最后的组包发送
     # 推理进程 反馈所有识别框
@@ -215,23 +221,30 @@ def main() -> None:
     # 主程序 final 组包发送，负责决策
 
     # 通信管道
-    trackerPipe = Pipe(duplex=False)  # 发送每一帧的frame
-    updateLabelPipe = Pipe(duplex=False)  # 发送每一帧的目标检测框
-    kmeansContainerPipe = Pipe(duplex=False)  # 发送敌方容器列表
-    kmeansDepthPipe = Pipe(duplex=False)  # 发送点云转换的深度图
-    distancePipe = Pipe(duplex=False)  # 发送距离数据
-    locationPipe = Pipe(duplex=False)  # 发送最终世界坐标
+    trackerPipe_recv, trackerPipe_send = Pipe(duplex=False)
+    updateLabelPipe_recv, updateLabelPipe_send = Pipe(duplex=False)
+    kmeansContainerPipe_recv, kmeansContainerPipe_send = Pipe(duplex=False)
+    kmeansDepthPipe_recv, kmeansDepthPipe_send = Pipe(duplex=False)
+    distancePipe_recv, distancePipe_send = Pipe(duplex=False)
+    locationPipe_recv, locationPipe_send = Pipe(duplex=False)
+
+    print("pipes init")
 
     # 进程列表
-    process = [Process(target=frameProcess),
-               Process(target=trackerProcess),
-               Process(target=updateLabelProcess),
-               Process(target=kmeansProcess),
-               Process(target=transformProcess),
-               Process(target=resultProcess)]
+    processes = [
+        Process(target=frameProcess, args=(trackerPipe_send,)),
+        Process(target=trackerProcess, args=(model, trackerPipe_recv, updateLabelPipe_send)),
+        Process(target=updateLabelProcess, args=(updateLabelPipe_recv, kmeansContainerPipe_send)),
 
-    [p.start() for p in process]
-    [p.join() for p in process]
+        Process(target=kmeansProcess, args=(kmeansContainerPipe_recv, kmeansDepthPipe_recv, distancePipe_send)),
+        Process(target=transformProcess, args=(distancePipe_recv, locationPipe_send)),
+        Process(target=resultProcess, args=(locationPipe_recv,))
+    ]
+
+    print("processes init")
+
+    [p.start() for p in processes]
+    [p.join() for p in processes]
 
 
 if __name__ == "__main__":
