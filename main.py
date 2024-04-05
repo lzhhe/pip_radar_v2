@@ -58,7 +58,7 @@ def get_img():
     cap.close_device()
 
 
-def frameProcess(trackerPipe) -> None:  # model是v8初始化模型
+def frameProcess(trackerPipe) -> None:
     print("enter frameProcess")
     if use_video == True:
         cap = cv2.VideoCapture(test_video_file)
@@ -98,41 +98,42 @@ def frameProcess(trackerPipe) -> None:  # model是v8初始化模型
 
 
 # 推理进程 反馈所有识别框
-def trackerProcess(model, trackerPipe, updateLabelPipe) -> None:
+def trackerProcess(trackerPipe, updateLabelPipe) -> None:
     print("enter trackerProcess")
-    frame = trackerPipe.recv()
-    carDict = {}  # 存储car的检测结果：id : [box, label, conf]
-    armorDict = {}  # 存储armor的检测结果：id : [box, label, conf]
+    model = YOLO(pt_file)  # 模型初始化
+    while True:
+        frame = trackerPipe.recv()
+        carDict = {}  # 存储car的检测结果：id : [box, label, conf]
+        armorDict = {}  # 存储armor的检测结果：id : [box, label, conf]
+        results = model.track(frame, persist=True, tracker="botsort.yaml")
+        boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
+        labels = results[0].boxes.cls.cpu().numpy()
+        confs = results[0].boxes.conf.cpu().numpy()
 
-    results = model.track(frame, persist=True, tracker="botsort.yaml")
-    boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
-    labels = results[0].boxes.cls.cpu().numpy()
-    confs = results[0].boxes.conf.cpu().numpy()
+        try:
+            ids = results[0].boxes.id.cpu().numpy().astype(int)
+            for box, id, label, conf in zip(boxes, ids, labels, confs):
+                label_name = model.names[label]
+                # 按标签名称分配到不同的字典
+                if label_name == 'car':
+                    carDict[id] = [box, label_name, conf]
 
-    try:
-        ids = results[0].boxes.id.cpu().numpy().astype(int)
-        for box, id, label, conf in zip(boxes, ids, labels, confs):
-            label_name = model.names[label]
-            # 按标签名称分配到不同的字典
-            if label_name == 'car':
-                carDict[id] = [box, label_name, conf]
-
-            # 这里不使用敌人标签进行过滤是因为container在两个车相交时会将标签给两个车，无法区别了，这部分需要优化
-            # 现阶段的办法就是都识别，算力似乎足够而且没吃满
-            # 如果使用严格的交并比和分数进行过滤，也无法完全保证准确识别
-            # 敌我区分则在最后发送时进行过滤
-            # elif 'armor' in label_name and enemy in label_name:
-            elif 'armor' in label_name:
-                armorDict[id] = [box, label_name, conf]
-        # print("carDict: ", carDict)
-        # print("armorDict: ", armorDict)
+                # 这里不使用敌人标签进行过滤是因为container在两个车相交时会将标签给两个车，无法区别了，这部分需要优化
+                # 现阶段的办法就是都识别，算力似乎足够而且没吃满
+                # 如果使用严格的交并比和分数进行过滤，也无法完全保证准确识别
+                # 敌我区分则在最后发送时进行过滤
+                # elif 'armor' in label_name and enemy in label_name:
+                elif 'armor' in label_name:
+                    armorDict[id] = [box, label_name, conf]
+            # print("carDict: ", carDict)
+            # print("armorDict: ", armorDict)
 
 
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
 
-    tempDict = (carDict, armorDict)  # 只发送一个元素
-    updateLabelPipe.send(tempDict)
+        tempDict = (carDict, armorDict)  # 只发送一个元素
+        updateLabelPipe.send(tempDict)
 
 
 def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
@@ -172,44 +173,46 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
 
 def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
     print("enter kmeansContainerPipe")
-    containerDict = kmeansContainerPipe.recv()
-    # depth_map = kmeansDepthPipe.recv() # 等待深度转化进程的深度图像，这部分需要根据相机的分辨率来改
-    depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
+    while True:
+        containerDict = kmeansContainerPipe.recv()
+        # depth_map = kmeansDepthPipe.recv() # 等待深度转化进程的深度图像，这部分需要根据相机的分辨率来改
+        depth_map = np.random.randint(0, 256, (1080, 1440)).astype(np.float32)
 
-    for id in containerDict:
-        kmeansCalculate = KmeansCalculate(containerDict[id], depth_map)
-        kmeansCalculate.kmeans_classify()
+        for id in containerDict:
+            kmeansCalculate = KmeansCalculate(containerDict[id], depth_map)
+            kmeansCalculate.kmeans_classify()
 
-    distancePipe.send(containerDict)  # 这里是已经更新过距离的
+        distancePipe.send(containerDict)  # 这里是已经更新过距离的
 
 
 def transformProcess(distancePipe, locationPipe) -> None:
     print("enter transformProcess")
-    containerDict = distancePipe.recv()
-    for id in containerDict:
-        container = containerDict[id]
-        container.calculate2DPosition()
-    locationPipe.send(containerDict)  # 最终坐标
+    while True:
+        containerDict = distancePipe.recv()
+        for id in containerDict:
+            container = containerDict[id]
+            container.calculate2DPosition()
+        locationPipe.send(containerDict)  # 最终坐标
 
 
 def resultProcess(locationPipe) -> None:
-    containerDict = locationPipe.recv()
-    for id in containerDict:
-        container = containerDict[id]
-        label = containerDict
-        xLocation = container.xLocation
-        yLocation = container.yLocation
+    while True:
+        containerDict = locationPipe.recv()
+        for id in containerDict:
+            container = containerDict[id]
+            label = containerDict
+            xLocation = container.xLocation
+            yLocation = container.yLocation
 
-        robotId = robotIdDict[label]
+            robotId = robotIdDict[label]
 
-        # 等待组包
-        # 暂时打印所有的目标和实际坐标
-        print("robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
+            # 等待组包
+            # 暂时打印所有的目标和实际坐标
+            print("robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
 def main() -> None:
     # __init__
-    model = YOLO(pt_file)  # 模型初始化
 
     set_start_method('spawn')
 
@@ -233,7 +236,7 @@ def main() -> None:
     # 进程列表
     processes = [
         Process(target=frameProcess, args=(trackerPipe_send,)),
-        Process(target=trackerProcess, args=(model, trackerPipe_recv, updateLabelPipe_send)),
+        Process(target=trackerProcess, args=(trackerPipe_recv, updateLabelPipe_send)),
         Process(target=updateLabelProcess, args=(updateLabelPipe_recv, kmeansContainerPipe_send)),
 
         Process(target=kmeansProcess, args=(kmeansContainerPipe_recv, kmeansDepthPipe_recv, distancePipe_send)),
