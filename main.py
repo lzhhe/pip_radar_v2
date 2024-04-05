@@ -17,10 +17,12 @@ from container import Container
 
 # 超参数和配置
 use_video = True
+show_result = True
 pt_file = "huazhongv8.pt"
 test_video_file = "test2.mp4"
 enemy = "red"
 framexxx = None
+
 con = threading.Condition()
 
 
@@ -110,21 +112,21 @@ def trackerProcess(trackerPipe, updateLabelPipe) -> None:
                 # elif 'armor' in label_name and enemy in label_name:
                 elif 'armor' in label_name:
                     armorDict[id] = [box, label_name, conf]
+
             # print("carDict: ", carDict)
             # print("armorDict: ", armorDict)
-
 
         except Exception as e:
             print(e)
 
-        tempDict = (carDict, armorDict)  # 只发送一个元素
+        tempDict = (carDict, armorDict)
         updateLabelPipe.send(tempDict)
 
 
 def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
     print("enter updateLabelProcess")
     containerDict = {}
-    while 1:
+    while True:
         tempContainerDict = {}
         enemyDict = {}
         carDict, armorDict = updateLabelPipe.recv()
@@ -152,8 +154,9 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
         for id in containerDict:
             if enemy in tempContainerDict[id].label:
                 enemyDict[id] = tempContainerDict[id]
+
         kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
-        # print(enemyDict)
+
 
 
 def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
@@ -211,6 +214,12 @@ def resultProcess(locationPipe) -> None:
             print("Id: ", id, "robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
+# def judgementProcess(gameStatus, radarInfo):
+#     remainTime = gameStatus.get_game_remain_time()
+#     vulnerabilityTimes = radarInfo.vulnerability_times()
+#     vulnerabilityStatus = radarInfo.vulnerability_status()
+#     if (remainTime == 180 or remainTime == 60) and vulnerabilityTimes != 0 and vulnerabilityStatus != 1:
+#         pass
 def main() -> None:
     # __init__
 

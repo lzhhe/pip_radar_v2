@@ -86,11 +86,12 @@ class RadarInfo:
     def __init__(self, packet):
         self.packet, = struct.unpack('>B', packet)
 
+    # 剩余易伤次数
     def vulnerability_times(self):
         return self.packet & 0b11
 
-    # 0:对方未被触发双倍易伤
-    # 1:对方正在被触发双倍易伤
+    # 0:敌方未被触发双倍易伤
+    # 1:敌方正在被触发双倍易伤
     def vulnerability_status(self):
         return (self.packet >> 2) & 0b1
 
