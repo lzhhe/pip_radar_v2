@@ -22,21 +22,7 @@ test_video_file = "test2.mp4"
 enemy = "blue"
 framexxx = None
 con = threading.Condition()
-robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
-    "armor1red": 1,
-    "armor2red": 2,
-    "armor3red": 3,
-    "armor4red": 4,
-    "armor5red": 5,
-    "armor6red": 7,
 
-    "armor1blue": 101,
-    "armor2blue": 102,
-    "armor3blue": 103,
-    "armor4blue": 104,
-    "armor5blue": 105,
-    "armor6blue": 107,
-}
 
 
 def get_img():
@@ -168,7 +154,7 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
             if enemy in tempContainerDict[id].label:
                 enemyDict[id] = tempContainerDict[id]
         kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
-        print(enemyDict)
+        # print(enemyDict)
 
 
 def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
@@ -196,15 +182,31 @@ def transformProcess(distancePipe, locationPipe) -> None:
 
 
 def resultProcess(locationPipe) -> None:
+    robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
+        "armor1red": 1,
+        "armor2red": 2,
+        "armor3red": 3,
+        "armor4red": 4,
+        "armor5red": 5,
+        "armor6red": 7,
+
+        "armor1blue": 101,
+        "armor2blue": 102,
+        "armor3blue": 103,
+        "armor4blue": 104,
+        "armor5blue": 105,
+        "armor6blue": 107,
+    }
     while True:
         containerDict = locationPipe.recv()
         for id in containerDict:
             container = containerDict[id]
-            label = containerDict
+            label = containerDict[id].label
+            print(label)
             xLocation = container.xLocation
             yLocation = container.yLocation
 
-            robotId = robotIdDict[label]
+            robotId = robotIdDict.get(label)
 
             # 等待组包
             # 暂时打印所有的目标和实际坐标
