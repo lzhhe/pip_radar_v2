@@ -3,6 +3,7 @@ from multiprocessing import Pipe, Process, set_start_method
 
 import numpy as np
 
+from communication import *
 from kmeans import KmeansCalculate
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -20,7 +21,7 @@ use_video = True
 show_result = True
 pt_file = "huazhongv8.pt"
 test_video_file = "test2.mp4"
-enemy = "red"
+enemy = "blue"
 framexxx = None
 
 con = threading.Condition()
@@ -158,7 +159,6 @@ def updateLabelProcess(updateLabelPipe, kmeansContainerPipe) -> None:
         kmeansContainerPipe.send(enemyDict)  # 这后面都只有敌方信息
 
 
-
 def kmeansProcess(kmeansContainerPipe, kmeansDepthPipe, distancePipe) -> None:
     print("enter kmeansContainerPipe")
     while True:
@@ -183,33 +183,19 @@ def transformProcess(distancePipe, locationPipe) -> None:
         locationPipe.send(containerDict)  # 最终坐标
 
 
-def resultProcess(locationPipe) -> None:
-    robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
-        "armor1red": 1,
-        "armor2red": 2,
-        "armor3red": 3,
-        "armor4red": 4,
-        "armor5red": 5,
-        "armor6red": 7,
-
-        "armor1blue": 101,
-        "armor2blue": 102,
-        "armor3blue": 103,
-        "armor4blue": 104,
-        "armor5blue": 105,
-        "armor6blue": 107,
-    }
+def resultProcess(locationPipe) -> None:  # 发送进程
+    send_seq = 0
     while True:
         containerDict = locationPipe.recv()
         for id in containerDict:
             container = containerDict[id]
-            label = containerDict[id].label
-            xLocation = container.xLocation
+            xLocation = container.xLocation  # 发送浮点数
             yLocation = container.yLocation
-
-            robotId = robotIdDict.get(label)
-
+            robotId = container.robotId
             # 等待组包
+            mapRobotData = MapRobotData(robotId, xLocation, yLocation)
+            packet = PacketBuilder(mapRobotData.cmd_id, send_seq, mapRobotData.data)
+
             # 暂时打印所有的目标和实际坐标
             print("Id: ", id, "robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 

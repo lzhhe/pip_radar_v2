@@ -77,6 +77,22 @@ armor_flag_limit = {
     "armor6": 30,
 }
 
+robotIdDict = {  # 权重识别的哨兵的名字的armor6，这里需要转换一下
+    "armor1red": 1,
+    "armor2red": 2,
+    "armor3red": 3,
+    "armor4red": 4,
+    "armor5red": 5,
+    "armor6red": 7,
+
+    "armor1blue": 101,
+    "armor2blue": 102,
+    "armor3blue": 103,
+    "armor4blue": 104,
+    "armor5blue": 105,
+    "armor6blue": 107,
+}
+
 # 红方为左上
 # 红方机场作为原点
 # 雷达坐标为(-162.8,-592.3) 单位cm
@@ -172,6 +188,7 @@ class Container:
         self.flagLimit = 30  # 默认30 避免锁死
 
         self.label = ""  # 最终标签
+        self.robotId = ""
         self.score = 0  # 最终评分
         self.weightI = 0.5  # 初次需要有个权重
         self.weightC = 0.5
@@ -201,6 +218,8 @@ class Container:
         self.weightI = armor_weightI.get(label_name)
         self.size = armor_sizes.get(label_name)
         self.flagLimit = armor_flag_limit.get(label_name)
+
+        self.robotId = robotIdDict.get(self.label)
 
     def updateLabel(self, armorDict):
         if self.label is None or self.flag > self.flagLimit or self.flag == 0:  # 未分类/没有到限制不重置

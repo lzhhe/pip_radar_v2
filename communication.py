@@ -1,6 +1,6 @@
 import struct
 from enum import IntEnum
-import crcmod
+from CRC import *
 
 
 # 比赛类型枚举
@@ -22,6 +22,8 @@ class GameProgress(IntEnum):
     FINISHED = 5  # 结束
 
 
+# 以下解包命令中packet均为解包之后去掉包头的data
+
 # 0x0001
 class GameStatus:
     def __init__(self, packet):
@@ -32,22 +34,6 @@ class GameStatus:
 
         self.stage_remain_time = unpacked_data[1]
         self.sync_timestamp = unpacked_data[2]
-
-    # 比赛类型
-    def get_game_type_enum(self):
-        return GameType(self.game_type)
-
-    # 比赛阶段
-    def get_game_progress_enum(self):
-        return GameProgress(self.game_progress)
-
-    # 比赛剩余时间
-    def get_game_remain_time(self):
-        return self.stage_remain_time
-
-    # UNIX 时间戳
-    def get_stamp_time(self):
-        return self.sync_timestamp
 
 
 # 1:红方英雄机器人
@@ -78,8 +64,6 @@ class BlueRobotID(IntEnum):
     BLUE_SENTRY = 107
 
 
-# 以下解包命令中packet均为解包之后去掉包头的data
-
 # 雷达状态，易伤状态 server to radar
 # 0x020C
 class RadarInfo:
@@ -107,24 +91,6 @@ class RadarMarkData:
             self.mark_infantry_5_progress, \
             self.mark_sentry_progress = struct.unpack('6B', packet)
 
-    def get_hero_progress(self):
-        return self.mark_hero_progress
-
-    def get_engineer_progress(self):
-        return self.mark_engineer_progress
-
-    def get_standard_3_progress(self):
-        return self.mark_infantry_3_progress
-
-    def get_standard_4_progress(self):
-        return self.mark_infantry_4_progress
-
-    def get_standard_5_progress(self):
-        return self.mark_infantry_5_progress
-
-    def get_sentry_progress(self):
-        return self.mark_sentry_progress
-
 
 # 发送机器人坐标包  radar to server
 # 0x0305
@@ -135,55 +101,25 @@ class MapRobotData:
         self.target_position_x = target_position_x
         self.target_position_y = target_position_y
 
-    def pack(self):
-        return struct.pack('>Hff', self.target_robot_id, self.target_position_x, self.target_position_y)
-
-    def __repr__(self):
-        return f'MapRobotData({self.target_robot_id}, {self.target_position_x}, {self.target_position_y})'
+        self.data = struct.pack('>Hff', self.target_robot_id, self.target_position_x, self.target_position_y)
+        # self.packet_data = bytearray(self.data)
 
 
 class PacketBuilder:
     def __init__(self, cmd_id, seq, data):
-        self.sof = 0xA5  # Start of Frame byte as per specification
+        self.sof = 0xA5  # 固定起始位
         self.cmd_id = cmd_id
         self.seq = seq
-        self.data = data
-        self.data_length = len(data)
+        self.data = bytearray(data)
+        self.data_length = len(bytearray(data))
 
-        # Define CRC-8 and CRC-16 functions according to your polynomial
-        # This is just a placeholder and needs to be adjusted to your CRC algorithm
-        self.crc8_func = crcmod.mkCrcFun(0x107, initCrc=0x00, xorOut=0x00)
-        self.crc16_func = crcmod.mkCrcFun(0x11021, initCrc=0x00, xorOut=0x00)
-
-    def calculate_crc8(self, header):
-        return self.crc8_func(header)
-
-    def calculate_crc16(self, frame):
-        return self.crc16_func(frame)
-
-    def build_packet(self):
-        # Construct the frame header
-        header = struct.pack('>BHB', self.sof, self.data_length, self.seq)
-        crc8 = self.calculate_crc8(header)
-
-        # Include the CRC8 in the header
-        header += struct.pack('>B', crc8)
-
-        # Construct the frame tail with CRC16
-        frame_without_crc16 = header + self.cmd_id + self.data
-        crc16 = self.calculate_crc16(frame_without_crc16)
-
-        # Include the CRC16 in the frame tail
-        frame_tail = struct.pack('>H', crc16)
-
-        # Complete frame
-        return frame_without_crc16 + frame_tail
-
+        self.header = append_crc8_check_sum(bytearray(struct.pack('>BHB', self.sof, self.data_length, self.seq)))
+        self.packet_data = self.header + self.data
+        self.message = append_crc16_check_sum(self.packet_data)
 
 class PacketParser:
-    def __init__(self):
-        self.crc8_func = crcmod.mkCrcFun(0x107, initCrc=0x00, xorOut=0x00)
-        self.crc16_func = crcmod.mkCrcFun(0x11021, initCrc=0x00, xorOut=0x00)
+    def __init__(self, packet):
+        self.packet = packet
 
         # 创建命令ID到处理函数的映射
         self.cmd_id_map = {
@@ -197,30 +133,15 @@ class PacketParser:
             raise ValueError("Incomplete packet: too short for header, CRC8, and CRC16.")
 
         # 解析包头
-        sof, data_length, seq, crc8_received = struct.unpack('>BHB', packet[:5])
-        if sof != 0xA5:
-            raise ValueError("Invalid start of frame byte.")
+        sof, data_length, seq, crc8 = struct.unpack('>BHB', packet[:5])
 
-        if crc8_received != self.crc8_func(packet[:4]):
-            raise ValueError("CRC8 verification failed.")
 
-        data_end_pos = 5 + data_length
-        if len(packet) < data_end_pos + 2:
-            raise ValueError("Incomplete packet: Data length does not match.")
-
-        crc16_received = struct.unpack('>H', packet[data_end_pos:data_end_pos + 2])[0]
-        if crc16_received != self.crc16_func(packet[:data_end_pos]):
-            raise ValueError("CRC16 verification failed.")
-
-        # 解析cmd id 和数据
-        cmd_id = struct.unpack('>H', packet[5:7])[0]
-        data = packet[7:data_end_pos]
-
-        return self.analyse_data(cmd_id, data)
-
-    def analyse_data(self, cmd_id, data):
-        if cmd_id in self.cmd_id_map:
-            return self.cmd_id_map[cmd_id](data)
-        else:
-            print(f"Unknown command ID: {cmd_id}")
-            return None
+if __name__ == "__main__":
+    mapRobotData = MapRobotData(101, 123.456, 456.789)
+    print("mapRobotData.data: ", mapRobotData.data)
+    packet = PacketBuilder(mapRobotData.cmd_id, 1, mapRobotData.data)
+    print("packet.header: ", packet.header)
+    print("header len: ", len(packet.header))
+    print("packet data: ", packet.data)
+    print("packet data len: ", len(packet.data))
+    print("packet message: ", packet.message)
