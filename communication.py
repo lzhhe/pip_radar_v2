@@ -102,7 +102,6 @@ class MapRobotData:
         self.target_position_y = target_position_y
 
         self.data = struct.pack('>Hff', self.target_robot_id, self.target_position_x, self.target_position_y)
-        # self.packet_data = bytearray(self.data)
 
 
 class PacketBuilder:
@@ -113,9 +112,11 @@ class PacketBuilder:
         self.data = bytearray(data)
         self.data_length = len(bytearray(data))
 
+        self.cmd_id_bytes = struct.pack('>H', self.cmd_id)
+
         self.header = append_crc8_check_sum(bytearray(struct.pack('>BHB', self.sof, self.data_length, self.seq)))
-        self.packet_data = self.header + self.data
-        self.message = append_crc16_check_sum(self.packet_data)
+        self.message = append_crc16_check_sum(self.header + self.cmd_id_bytes + self.data)
+
 
 class PacketParser:
     def __init__(self, packet):
@@ -126,18 +127,29 @@ class PacketParser:
             0x0001: GameStatus,
             0x020C: RadarInfo,
             0x020E: RadarMarkData,
+            0x0305: MapRobotData  # 这条实际不会存在，测试解包用
         }
 
-    def parse_packet(self, packet):
-        if len(packet) < 7:
-            raise ValueError("Incomplete packet: too short for header, CRC8, and CRC16.")
+        self.sof = self.packet[0]
+        if self.sof != 0xA5:
+            raise ValueError(f"Invalid SOF; expected 0xA5, got {self.sof:#x}")
 
-        # 解析包头
-        sof, data_length, seq, crc8 = struct.unpack('>BHB', packet[:5])
+        self.data_length, self.seq = struct.unpack('>HB', self.packet[1:4])
+
+        if not verify_crc8_check_sum(self.packet[:5], 5):
+            raise ValueError("CRC8 verification failed.")
+
+        self.cmd_id, = struct.unpack('>H', self.packet[5:7])
+
+        self.data = self.packet[7:-2]
+
+        if not verify_crc16_check_sum(self.packet, len(self.packet)):  # CRC: 长度-2已经在校验文件当中写过了
+            raise ValueError("CRC16 verification failed.")
 
 
 if __name__ == "__main__":
-    mapRobotData = MapRobotData(101, 123.456, 456.789)
+    # 发送测试
+    mapRobotData = MapRobotData(101, 123.456789, 456.789123)
     print("mapRobotData.data: ", mapRobotData.data)
     packet = PacketBuilder(mapRobotData.cmd_id, 1, mapRobotData.data)
     print("packet.header: ", packet.header)
@@ -145,3 +157,9 @@ if __name__ == "__main__":
     print("packet data: ", packet.data)
     print("packet data len: ", len(packet.data))
     print("packet message: ", packet.message)
+
+    # 解包测试 具体信息需要等裁判服务器进行发送
+    receive_packet = PacketParser(packet.message)
+    print(f"receive_packet cmd_id: 0x{receive_packet.cmd_id:04X}")
+    print("receive_packet data: ", receive_packet.data)
+    print("receive_packet seq: ", receive_packet.seq)

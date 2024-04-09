@@ -195,6 +195,8 @@ def resultProcess(locationPipe) -> None:  # 发送进程
             # 等待组包
             mapRobotData = MapRobotData(robotId, xLocation, yLocation)
             packet = PacketBuilder(mapRobotData.cmd_id, send_seq, mapRobotData.data)
+            # 等待发送，或者放到主程序进行发送
+            print(packet.message)
 
             # 暂时打印所有的目标和实际坐标
             print("Id: ", id, "robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
