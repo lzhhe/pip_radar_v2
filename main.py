@@ -56,7 +56,7 @@ def frameProcess(trackerPipe) -> None:
                 break
             trackerPipe.send(frame)
             # cv2.imshow("frame", frame)
-            print("send frame in pipe")
+            # print("send frame in pipe")
         cap.release()
         cv2.destroyAllWindows()
         return
@@ -202,12 +202,6 @@ def resultProcess(locationPipe) -> None:  # 发送进程
             print("Id: ", id, "robotId: ", robotId, "xLocation: ", xLocation, "yLocation: ", yLocation)
 
 
-# def judgementProcess(gameStatus, radarInfo):
-#     remainTime = gameStatus.get_game_remain_time()
-#     vulnerabilityTimes = radarInfo.vulnerability_times()
-#     vulnerabilityStatus = radarInfo.vulnerability_status()
-#     if (remainTime == 180 or remainTime == 60) and vulnerabilityTimes != 0 and vulnerabilityStatus != 1:
-#         pass
 def main() -> None:
     # __init__
 
@@ -228,7 +222,7 @@ def main() -> None:
     distancePipe_recv, distancePipe_send = Pipe(duplex=False)
     locationPipe_recv, locationPipe_send = Pipe(duplex=False)
 
-    print("pipes init")
+    print("pipes init finish")
 
     # 进程列表
     processes = [
@@ -241,7 +235,7 @@ def main() -> None:
         Process(target=resultProcess, args=(locationPipe_recv,))
     ]
 
-    print("processes init")
+    print("processes init finish")
 
     [p.start() for p in processes]
     [p.join() for p in processes]

@@ -32,8 +32,8 @@ class GameStatus:
         self.game_type = (unpacked_data[0] & 0xF0) >> 4
         self.game_progress = unpacked_data[0] & 0x0F
 
-        self.stage_remain_time = unpacked_data[1]
-        self.sync_timestamp = unpacked_data[2]
+        self.remain_time = unpacked_data[1]
+        self.sync_timestamp = unpacked_data[3]
 
 
 # 1:红方英雄机器人
@@ -65,23 +65,16 @@ class BlueRobotID(IntEnum):
 
 
 # 雷达状态，易伤状态 server to radar
-# 0x020C
+# 0x020E
 class RadarInfo:
     def __init__(self, packet):
         self.packet, = struct.unpack('>B', packet)
-
-    # 剩余易伤次数
-    def vulnerability_times(self):
-        return self.packet & 0b11
-
-    # 0:敌方未被触发双倍易伤
-    # 1:敌方正在被触发双倍易伤
-    def vulnerability_status(self):
-        return (self.packet >> 2) & 0b1
+        self.vulnerability_times = self.packet & 0b11  # 剩余易伤次数
+        self.vulnerability_status = (self.packet >> 2) & 0b1  # 0:敌方未被触发双倍易伤 1:敌方正在被触发双倍易伤
 
 
 # 标记进度 server to radar
-# 0x020E
+# 0x020C
 class RadarMarkData:
     def __init__(self, packet):
         self.mark_hero_progress, \
@@ -145,6 +138,14 @@ class PacketParser:
 
         if not verify_crc16_check_sum(self.packet, len(self.packet)):  # CRC: 长度-2已经在校验文件当中写过了
             raise ValueError("CRC16 verification failed.")
+
+        # 这部分是解包用的，给出对应结构的包
+        # self.payload = self.cmd_id_map.get(self.cmd_id, None)
+        # if not self.payload:
+        #     raise ValueError(f"Unknown command ID: {self.cmd_id:#x}")
+        # else:
+        #     self.payload = self.payload(self.data)  # 把纯bytearray 数据给对应解包
+        #
 
 
 if __name__ == "__main__":
