@@ -120,7 +120,7 @@ class PacketParser:
             0x0001: GameStatus,
             0x020C: RadarInfo,
             0x020E: RadarMarkData,
-            0x0305: MapRobotData  # 这条实际不会存在，测试解包用
+            # 0x0305: MapRobotData  # 这条实际不会存在，测试解包用
         }
 
         self.sof = self.packet[0]
@@ -140,12 +140,12 @@ class PacketParser:
             raise ValueError("CRC16 verification failed.")
 
         # 这部分是解包用的，给出对应结构的包
-        # self.payload = self.cmd_id_map.get(self.cmd_id, None)
-        # if not self.payload:
-        #     raise ValueError(f"Unknown command ID: {self.cmd_id:#x}")
-        # else:
-        #     self.payload = self.payload(self.data)  # 把纯bytearray 数据给对应解包
-        #
+        self.payload = self.cmd_id_map.get(self.cmd_id, None)
+        if not self.payload:
+            raise ValueError(f"Unknown command ID: {self.cmd_id:#x}")
+        else:
+            self.payload = self.payload(self.data)  # 把纯bytearray 数据给对应解包
+
 
 
 if __name__ == "__main__":

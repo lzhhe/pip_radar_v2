@@ -1,4 +1,5 @@
 import os
+
 os.environ['OMP_NUM_THREADS'] = '3'
 import concurrent.futures
 import time
@@ -51,7 +52,6 @@ class KmeansCalculate:
     def kmeans_classify(self):
         z_represent_list = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            # Submit tasks to the executor for each area
             future_to_area = {executor.submit(self.process_area, area): area for area in self.areas}
             for future in concurrent.futures.as_completed(future_to_area):
                 z_represent = future.result()
@@ -80,5 +80,3 @@ if __name__ == "__main__":
     # plt.colorbar(label='Depth')
     # plt.title('Depth Map')
     # plt.show()
-
-
